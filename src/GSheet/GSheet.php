@@ -18,19 +18,11 @@ class GSheet
         $this->file_id = $file_id;
     }
 
-
-    //由于API有调用限制，默认采用先缓存最后插入的
-
-    //为空获取的时候自动api获取一次
-    //查不到表格的时候自动获取一次
-
-    //删除的时候自动更新
-    //名称更改的时候自动更新
-
-
-    //获取一个表格文件的所有 Sheets
-
-    public function getSheets()
+    /**
+     * 获取一个表格文件的所有 Sheets
+     * @return array
+     **/
+    public function getSheets(): array
     {
         return $this->serv->spreadsheets->get($this->file_id)->getSheets();
     }

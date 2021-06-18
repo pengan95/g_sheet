@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace MeiKaiGsuit\GSheet;
 
+use Google_Service_Sheets_Borders;
+use Google_Service_Sheets_Color;
 use \Google_Service_Sheets_NumberFormat as NumberFormat;
 use \Google_Service_Sheets_CellData as CellData;
 
@@ -234,9 +236,13 @@ class GSheetCell
         return $nf;
     }
 
-    public static function getSolidBorders(): \Google_Service_Sheets_Borders
+    /**
+     * 获取一个全边框实例
+     * @return Google_Service_Sheets_Borders
+    */
+    public static function getSolidBorders(): Google_Service_Sheets_Borders
     {
-        $borders = new \Google_Service_Sheets_Borders();
+        $borders = new Google_Service_Sheets_Borders();
         $solidBorder = new \Google_Service_Sheets_Border();
         $solidBorder->setStyle('SOLID');
         $borders->setBottom($solidBorder);
@@ -246,9 +252,13 @@ class GSheetCell
         return $borders;
     }
 
-    public static function getOrangeColor(): \Google_Service_Sheets_Color
+    /**
+     * 获取一个橘色背景色的color实例
+     * @return Google_Service_Sheets_Color
+    */
+    public static function getOrangeColor(): Google_Service_Sheets_Color
     {
-        $color = new \Google_Service_Sheets_Color();
+        $color = new Google_Service_Sheets_Color();
         $color->setRed(242/255);
         $color->setGreen(176/255);
         $color->setBlue(134/255);

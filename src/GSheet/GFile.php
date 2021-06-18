@@ -22,6 +22,7 @@ class GFile
     }
 
     /**
+     * 获取google drive文件
      * @param string $file_id
      * @return \Google_Service_Drive_DriveFile
     */
