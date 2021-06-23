@@ -29,7 +29,7 @@ class GClient
         ],
     ];
 
-    private $baseDir;
+    private $configDir;
 
     /**
      * 初始化
@@ -43,7 +43,11 @@ class GClient
             $this->scopes = $this->getDefinedScopeGroup($scopes);
         }
 
-        $this->baseDir = dirname(dirname(__DIR__));
+        if (defined('APP_CONFIG_PATH')) {
+            $this->configDir = APP_CONFIG_PATH;
+        } else {
+            $this->configDir = dirname(dirname(__DIR__));
+        }
     }
 
     public function getDefinedScopeGroup($scope_type): array
@@ -59,22 +63,22 @@ class GClient
      * */
     public function getClientCredential() : string
     {
-        $file_name = dirname(dirname(__DIR__)) . "/config/client_credential.json";
+        $file_name = $this->configDir . "/client_credential.json";
         if (file_exists($file_name)) {
             return $file_name;
         }
-        throw new \InvalidArgumentException('no client credential file in config dir');
+        throw new \InvalidArgumentException('no client credential file in config dir ' . $this->configDir);
     }
 
     public function setAccessToken($access_token)
     {
-        $file_name = $this->baseDir . "/config/token.json";
+        $file_name = $this->configDir . "/token.json";
         file_put_contents($file_name, json_encode($access_token));
     }
 
     public function getAccessToken()
     {
-        $file_name = $this->baseDir . "/config/token.json";
+        $file_name = $this->configDir . "/token.json";
         if (file_exists($file_name)) {
             return json_decode(file_get_contents($file_name), true);
         }
