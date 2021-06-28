@@ -3,9 +3,6 @@ declare(strict_types=1);
 
 namespace MeiKaiGsuit;
 
-
-use phpseclib3\Crypt\EC\Formats\Keys\Common;
-
 /**
  * @package
  * @property string $month
@@ -227,7 +224,7 @@ class FinanceRow
     }
 
     /**
-     * @param float $wallet_down_cashback
+     * @param float :
      * @return FinanceRow
      */
     public function setWalletDownCashback(float $wallet_down_cashback): FinanceRow
