@@ -125,4 +125,15 @@ class GSheet
     {
 
     }
+
+    public function addSheet(string $title)
+    {
+        $new_sheet = new \Google_Service_Sheets_AddSheetRequest();
+        $new_sheet->setProperties(new \Google_Service_Sheets_SheetProperties([
+            'title' => $title
+        ]));
+        $response = $this->serv->spreadsheets->batchUpdate($this->file_id,
+            new \Google_Service_Sheets_BatchUpdateSpreadsheetRequest([$new_sheet]));
+        return $response->getSpreadsheetId();
+    }
 }

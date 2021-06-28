@@ -24,8 +24,8 @@ class GClient
         ],
         self::SHEET_WRITE_SCOPE_GROUP => [
             Google_Service_Sheets::SPREADSHEETS,
-            Google_Service_Drive::DRIVE_FILE,
-            Google_Service_Drive::DRIVE_METADATA
+//            Google_Service_Drive::DRIVE_FILE,
+//            Google_Service_Drive::DRIVE_METADATA
         ],
     ];
 
@@ -67,7 +67,7 @@ class GClient
         if (file_exists($file_name)) {
             return $file_name;
         }
-        throw new \InvalidArgumentException('no client credential file in config dir ' . $this->configDir);
+        throw new \InvalidArgumentException('no client credential file in config dir ' . $file_name);
     }
 
     public function setAccessToken($access_token)

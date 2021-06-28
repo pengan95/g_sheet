@@ -210,7 +210,11 @@ class GSheetCell
     public static function calCellPos(array $cellPos, int $offset, string $dimension, string $op): string
     {
         $offset = ($op == 'minus') ? (-$offset) : $offset;
-        $cellPos[$dimension] += $offset;
+
+        //保护cellPos变成负数
+        if ($cellPos[$dimension] + $offset > 0) {
+            $cellPos[$dimension] += $offset;
+        }
 
         return ($dimension == self::DIMENSION_COLUMNS)
             ? colNum2Letter($cellPos[self::DIMENSION_COLUMNS])

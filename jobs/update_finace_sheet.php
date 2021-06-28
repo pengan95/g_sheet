@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ERROR);
+
 include_once "../config/const.php";
 
 include_once "../vendor/autoload.php";
@@ -10,8 +12,8 @@ $sp_dsn = "mysql:host=" . WALLET_DB_HOST . ";dbname=" . SHOPMALL_DB_NAME;
 $ebrp_dsn = "mysql:host=" . EB_DB_HOST . ";dbname=" . EB_REPORT_DB_NAME;
 
 
-$sp_db = new PDO($sp_dsn,WALLET_DB_USER, WALLET_DB_PWD);
-$ebrp_db = new PDO($ebrp_dsn,EB_DB_USER, EB_DB_PWD);
+$sp_db = new PDO($sp_dsn,WALLET_DB_USER, WALLET_DB_PWD, [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"]);
+$ebrp_db = new PDO($ebrp_dsn,EB_DB_USER, EB_DB_PWD, [PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"]);
 
 $month = $argv[1];
 
@@ -48,66 +50,66 @@ foreach ($currencies as $currency) {
     if ($row_index == 1) {
         $rowData->setSystemInit(0)->setWalletInit(0)->setSpInit(0);
     }
+
     $walletData = getV3TableDataByMonthAndCurrency($currency, $month);
 
     if ($walletData) {
-        $rowData->setWalletUpCashback($walletData['cashback_add'])
-            ->setWalletUpMarketing($walletData['opt_add'])
-//            ->setWalletUpWithdrawReturn()
-            ->setWalletUpCheckReturn($walletData['check_add'])
-            ->setWalletUpPaypalReturn($walletData['paypal_add'])
-            ->setWalletUpOtherReturn($walletData['other_add'])
-            ->setWalletDownCashback($walletData['cashback_reduce'])
-            ->setWalletDownMarketing($walletData['opt_reduce'])
-            ->setWalletDownWithdrawApply($walletData['shopmall_reduce']);
+        $rowData->setWalletUpCashback(round($walletData['cashback_add'],2))
+            ->setWalletUpMarketing(round($walletData['opt_add'],2))
+            ->setWalletUpWithdrawReturn(0)
+            ->setWalletUpCheckReturn(round($walletData['check_add'],2))
+            ->setWalletUpPaypalReturn(round($walletData['paypal_add'], 2))
+            ->setWalletUpOtherReturn(round($walletData['other_add'], 2))
+            ->setWalletDownCashback(round($walletData['cashback_reduce'], 2))
+            ->setWalletDownMarketing(round($walletData['opt_reduce'], 2))
+            ->setWalletDownWithdrawApply(round($walletData['shopmall_reduce'], 2));
     }
 
     $shopMallData = getShopMallDataByMonthAndCurrency($currency, $month);
 
     if ($shopMallData) {
         $rowData->setSpUpApply($shopMallData['add_all'])
-            ->setSpDownCheckPaid($shopMallData['reduce_check_paid'])
-            ->setSpDownPaypalPaid($shopMallData['reduce_paypal_paid'])
-            ->setSpDownOtherPaid($shopMallData['reduce_other_paid'])
-            ->setSpDownCheckFailed($shopMallData['reduce_check_failed'])
-            ->setSpDownPaypalFailed($shopMallData['reduce_paypal_failed'])
-            ->setSpDownOtherFailed($shopMallData['reduce_other_failed'])
-            ->setSpDownCanceled($shopMallData['reduce_cancel'])
-            ->setSpDownFraud($shopMallData['reduce_fake']);
-    }
-
-
-    if (isset($spPayPalData[$currency])) {
-        $rowData->setBankPaypalUp($spPayPalData[$currency]['return_amount'] ?? 0);
-        $rowData->setBankPaypalDown($spPayPalData[$currency]['paid_amount'] ?? 0);
+            ->setSpDownCheckPaid(round($shopMallData['reduce_check_paid'], 2))
+            ->setSpDownPaypalPaid(round($shopMallData['reduce_paypal_paid'],2))
+            ->setSpDownOtherPaid(round($shopMallData['reduce_other_paid'],2))
+            ->setSpDownCheckFailed(round($shopMallData['reduce_check_failed'], 2))
+            ->setSpDownPaypalFailed(round($shopMallData['reduce_paypal_failed'], 2))
+            ->setSpDownOtherFailed(round($shopMallData['reduce_other_failed'],2))
+            ->setSpDownCanceled(round($shopMallData['reduce_cancel'],2))
+            ->setSpDownFraud(round($shopMallData['reduce_fake'],2));
     }
 
     if ($currency == 'USD' && $spCheckData) {
-        $rowData->setBankCheckUp($spCheckData['return_amount'] ?? 0);
-        $rowData->setBankCheckDown($spCheckData['paid_amount'] ?? 0);
+        $rowData->setBankCheckUp(round($spCheckData['paid_amount'] ?? 0, 2));
+        $rowData->setBankCheckDown(round($spCheckData['return_amount'] ?? 0, 2));
+    }
+
+    if (isset($spPayPalData[$currency])) {
+        $rowData->setBankPaypalUp(round($spPayPalData[$currency]['paid_amount'] ?? 0, 2));
+        $rowData->setBankPaypalDown(round($spPayPalData[$currency]['return_amount'] ?? 0, 2));
     }
 
     $data = $rowData->toArray();
 
     if (in_array($currency, ['USD','HKD','TWD'])) {
         $data[] = 0;
-        $data[] = $spAchData[$currency]['return_amount'] ?? 0;
-        $data[] = $spAchData[$currency]['paid_amount'] ?? 0;
+        $data[] = round($spAchData[$currency]['paid_amount'] ?? 0, 2);
+        $data[] = round($spAchData[$currency]['return_amount'] ?? 0, 2);
     }
 
     if ($currency == 'HKD') {
-        $data[] = $spHsbcData;
+        $data[] = round($spHsbcData, 2);
+    } else {
+        $data[] = 0;  //其他
     }
-
-    $data[] = 0;
 
     if ($currency != 'CAD') {
         $data[] = ''; //空列
         $data[] = 0; //diff
     }
 
-    var_dump($data);
-//    $gfile->addCurrencyNumberRow($sheet_id, strtoupper($currency), $row_index, $data);
+//    var_dump($data);
+    $gfile->addCurrencyNumberRow($sheet_id, strtoupper($currency), $row_index, $data);
 }
 
 function checkTableExist($table_name)
@@ -116,9 +118,8 @@ function checkTableExist($table_name)
 
     $sql = "show tables like '{$table_name}'";
     $res = $ebrp_db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    var_dump($res);
 
-    if (!$res) {
+    if (!is_array($res)) {
         return false;
     }
     return true;
@@ -148,9 +149,8 @@ function getV3TableDataByMonthAndCurrency($currency, $month)
     $state = $ebrp_db->query($sql);
     $data = $state->fetchAll(PDO::FETCH_ASSOC);
 
-    return $data;
+    return $data[0];
 }
-
 
 function getShopMallDataByMonthAndCurrency($currency, $month)
 {
@@ -176,7 +176,7 @@ function getShopMallDataByMonthAndCurrency($currency, $month)
     $st = $ebrp_db->query($sql);
     $data = $st->fetchAll(PDO::FETCH_ASSOC);
 
-    return $data;
+    return $data[0];
 
 }
 
@@ -209,7 +209,6 @@ function getSpPayPalMonthData($month)
     $st = $sp_db->query($sql);
     $return_data = $st->fetchAll(PDO::FETCH_ASSOC);
 
-
     $data = [];
     foreach ($paid_data as $item) {
         $data[$item['currency']]['paid_amount'] =  $item['amount'];
@@ -220,7 +219,6 @@ function getSpPayPalMonthData($month)
     }
 
     return $data;
-
 }
 
 function getSpCheckMonthData($month)
@@ -255,16 +253,14 @@ function getSpCheckMonthData($month)
     $st = $sp_db->query($sql);
     $return_data = $st->fetchAll(PDO::FETCH_ASSOC);
 
-    $data = [];
-
     $paid_amount = 0;
     if ($paid_data) {
-        $paid_amount = $paid_data[0]['pay'];
+        $paid_amount = 0 - $paid_data[0]['pay'];
     }
 
     $return_amount = 0;
     if ($return_data) {
-        $return_amount = $return_data[0]['pay'];
+        $return_amount = 0 - $return_data[0]['pay'];
     }
 
     return compact('paid_amount', 'return_amount');
@@ -316,14 +312,20 @@ function getSpHsbcMonthData($month)
 
     $sql = "SELECT sum( amount ) as amount
     FROM hsbc_echeck_transactions 
-    WHERE send_date like '%{$month}' and create > '{$before_month}-01'"; //HKD!AJ
+    WHERE send_date like '%{$month}' and `created` > '{$before_month}'"; //HKD!AJ
 
-    $st = $sp_db->query($sql);
-    $data = $st->fetchAll(PDO::FETCH_ASSOC);
+    $data = $sp_db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     if ($data) {
         return $data[0]['amount'];
     }
     return 0;
+}
+
+//TODO 慈善怎么获取
+function getSpCharityData($month)
+{
+    global $sp_db;
+
 }
 
 function getTableName($currency, $table_prefix)
