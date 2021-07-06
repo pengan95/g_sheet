@@ -16,7 +16,7 @@ class GClient
 
     public $scopes = [];
     public $applicationName = 'MeiKai Service';
-
+    private $scopes_md5;
     private $scopeGroups = [
         self::SHEET_READ_SCOPE_GROUP => [
             Google_Service_Sheets::SPREADSHEETS_READONLY,
@@ -42,6 +42,8 @@ class GClient
         } else {
             $this->scopes = $this->getDefinedScopeGroup($scopes);
         }
+
+        $this->scopes_md5 = md5(implode(',', $this->scopes));
 
         if (defined('APP_CONFIG_PATH')) {
             $this->configDir = APP_CONFIG_PATH;
@@ -72,13 +74,13 @@ class GClient
 
     public function setAccessToken($access_token)
     {
-        $file_name = $this->configDir . "/token.json";
+        $file_name = $this->configDir . "/token_" . $this->scopes_md5 . ".json";
         file_put_contents($file_name, json_encode($access_token));
     }
 
     public function getAccessToken()
     {
-        $file_name = $this->configDir . "/token.json";
+        $file_name = $this->configDir . "/token_" . $this->scopes_md5 . ".json";
         if (file_exists($file_name)) {
             return json_decode(file_get_contents($file_name), true);
         }
