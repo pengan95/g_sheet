@@ -705,8 +705,8 @@ class FinanceRow
     {
         return [
             $this->getMonth(), //A
-            $this->getSystemInit() ?? '=AB`BR2`', //B '=AB3' row_index = 4
-            $this->getWalletInit() ?? '=M`BR2`', //C '=M3' row_index = 4
+            $this->getSystemInit() ?? '=AB`BR1`', //B '=AB3' row_index = 4
+            $this->getWalletInit() ?? '=M`BR1`', //C '=M3' row_index = 4
 
             $this->getWalletUpCashback() ?? 0, //D
             $this->getWalletUpMarketing() ?? 0, //E
@@ -720,7 +720,7 @@ class FinanceRow
 
             $this->getWalletEnd() ?? '=C`CR`+SUM(D`CR`:I`CR`)-sum(J`CR`:L`CR`)', //M '=C4+SUM(D4:I4)-sum(J4:L4)' row_index = 4
             $this->getWalletChanged() ?? '=M`CR`-C`CR`', //N '=M4-C4' row_index = 4
-            $this->getSpInit() ?? '=Z`BR2`', //O  '=Z3' row_index = 4
+            $this->getSpInit() ?? '=Z`BR1`', //O  '=Z3' row_index = 4
 
 
             $this->getSpUpApply() ?? 0, //P
